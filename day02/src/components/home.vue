@@ -16,6 +16,7 @@
         <v-btn color="success" @click="addInfo()">ADD</v-btn>
       </v-col>
     </v-row>
+    <v-row style="display:flex;justify-content:flex-end;padding:2%"><v-btn @click="save()">SAVE</v-btn></v-row>
     <v-data-table :headers="headers" :items="info" class="elevation-1"></v-data-table>
   </v-container>
 </template>
@@ -27,7 +28,7 @@ export default {
     return {
       name: "",
       lastname: "",
-      score: "0",
+      score: 0,
       info: [],
       headers: [
         {
@@ -49,8 +50,6 @@ export default {
     axios.get("/data.json").then((response) => {
       this.info = response.data.data;
       this.info.sort(this.compare);
-      this.info.reverse();
-      console.log(response.data.data);
     });
   },
   methods: {
@@ -58,21 +57,30 @@ export default {
       let temp = {
         name: this.name,
         lastname: this.lastname,
-        score: this.score,
+        score: parseInt(this.score),
       };
-     let newdata=[...this.info,temp]
-      newdata.sort(this.compare);
-      newdata.reverse();
-      this.info=newdata
+      this.info.push(temp);
+      this.info.sort(this.compare)
       this.name = "";
       this.lastname = "";
-      this.score = "0";
+      this.score = 0;
+    },
+    save(){
+      const blob = new Blob([JSON.stringify({data:this.info})], {type: 'text/plain'})
+      const e = document.createEvent('MouseEvents'),
+      a = document.createElement('a');
+      a.download = "data.json";
+      a.href = window.URL.createObjectURL(blob);
+      a.dataset.downloadurl = ['text/json', a.download, a.href].join(':');
+      console.log(a)
+      e.initEvent('click', true, false, window, 0, 0, 0, 0, 0, false, false, false, false, 0, null);
+      a.dispatchEvent(e);
     },
     compare(a, b) {
       if (a.score < b.score) {
-        return -1;
-      } else if (a.score > b.score) {
         return 1;
+      } else if (a.score > b.score) {
+        return -1;
       } else {
         return 0;
       }
